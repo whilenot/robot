@@ -1,2 +1,2 @@
 # robot
-Arduino
+Arduino based robot project
