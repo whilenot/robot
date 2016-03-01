@@ -2,8 +2,8 @@
  * robot.h
  */
 
-#ifndef _ROBOT_H_
-#define _ROBOT_H_
+#ifndef ROBOT_H
+#define ROBOT_H
 
 #define ON        HIGH
 #define OFF       LOW
@@ -11,5 +11,6 @@
 #define BACKWARD  LOW
 #define RIGHT     'A'
 #define LEFT      'B'
+#define BOTH      'C'
 
 #endif
