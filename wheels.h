@@ -2,21 +2,17 @@
  * wheels.h
  */
 
-#ifndef _WHEELS_H_
-#define _WHEELS_H_
+#ifndef WHEELS_H
+#define WHEELS_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-void initWheels();
-void brake(char, int);
-void dualBreak(int);
-void dir(char, int);
-void speed(char, int);
-
-#ifdef __cplusplus
-}
-#endif
+class Wheels
+{
+  /* Constructor */
+  public:
+    void toggleBrake  (char ch, int val);
+    void setDirection (char ch, int val);
+    void setSpeed     (char ch, int val);
+    Wheels();
+};
 
 #endif
