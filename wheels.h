@@ -12,6 +12,7 @@ class Wheels
     void toggleBrake  (char ch, int val);
     void setDirection (char ch, int val);
     void setSpeed     (char ch, int val);
+    int  getCurrent   (char ch);
     Wheels();
 };
 

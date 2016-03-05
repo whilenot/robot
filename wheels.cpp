@@ -12,6 +12,8 @@ static const int SpeedA =  3;
 static const int SpeedB = 11;
 static const int BrakeA =  9;
 static const int BrakeB =  8;
+static const int CurrentA =  0;
+static const int CurrentB =  1;
 
 /* Initialization */
 Wheels::Wheels()
@@ -64,5 +66,16 @@ void Wheels::setSpeed(char ch, int val)
       break;
     case LEFT :
       analogWrite(SpeedB, val);
+  }
+}
+
+/* Returns the current absorption of one motor */
+int Wheels::getCurrent(char ch)
+{
+  switch(ch) {
+    case RIGHT :
+      return analogRead(CurrentA);
+    case LEFT :
+      return analogRead(CurrentB);
   }
 }
