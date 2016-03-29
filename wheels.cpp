@@ -6,33 +6,33 @@
 #include "robot.h"
 #include "wheels.h"
 
-static const int DirA   = 12;
-static const int DirB   = 13;
-static const int SpeedA =  3;
-static const int SpeedB = 11;
-static const int BrakeA =  9;
-static const int BrakeB =  8;
-static const int CurrentA =  0;
-static const int CurrentB =  1;
+static const int DirA     = 12;
+static const int DirB     = 13;
+static const int SpeedA   = 3;
+static const int SpeedB   = 11;
+static const int BrakeA   = 9;
+static const int BrakeB   = 8;
+static const int CurrentA = 0;
+static const int CurrentB = 1;
 
 /* Initialization */
-Wheels::Wheels()
+void wheels_init(void)
 {
-  /* Channel A */
-  pinMode(DirA, OUTPUT);       // Direction pin as output
+  /* Channel A -- Right wheel */
+  pinMode(DirA,   OUTPUT);     // Direction pin as output
   pinMode(BrakeA, OUTPUT);     // Brake pin as output
-  digitalWrite(DirA, LOW);     // Set forward direction 
+  digitalWrite(DirA,   LOW);   // Set forward direction 
   digitalWrite(BrakeA, HIGH);  // Engage brake
 
-  /* Channel B */
-  pinMode(DirB, OUTPUT);       // Direction pin as output
+  /* Channel B -- Left Wheel */
+  pinMode(DirB,   OUTPUT);     // Direction pin as output
   pinMode(BrakeB, OUTPUT);     // Brake pin as output
-  digitalWrite(DirB, HIGH);    // Set forward direction 
+  digitalWrite(DirB,   HIGH);  // Set forward direction 
   digitalWrite(BrakeB, HIGH);  // Engage brake
 }
 
 /* Toggle the brake of one motor or both ON or OFF */
-void Wheels::toggleBrake(char ch, int val)
+void wheels_toggleBrake(char ch, int val)
 {
   switch(ch) {
     case RIGHT :
@@ -42,11 +42,12 @@ void Wheels::toggleBrake(char ch, int val)
       digitalWrite(BrakeA, val);
     case LEFT :
       digitalWrite(BrakeB, val);
+      break;
   }
 }
 
 /* Set the direction of one motor FORWARD or BACKWARD */
-void Wheels::setDirection(char ch, int val)
+void wheels_setDirection(char ch, int val)
 {
   switch(ch) {
     case RIGHT :
@@ -54,11 +55,12 @@ void Wheels::setDirection(char ch, int val)
       break;
     case LEFT :
       digitalWrite(DirB, val);
+      break;
   }
 }
 
 /* Set the speed of one motor */
-void Wheels::setSpeed(char ch, int val) 
+void wheels_setSpeed(char ch, int val) 
 {
   switch(ch) {
     case RIGHT :
@@ -66,11 +68,12 @@ void Wheels::setSpeed(char ch, int val)
       break;
     case LEFT :
       analogWrite(SpeedB, val);
+      break;
   }
 }
 
 /* Returns the current absorption of one motor */
-int Wheels::getCurrent(char ch)
+int wheels_getCurrent(char ch)
 {
   switch(ch) {
     case RIGHT :
