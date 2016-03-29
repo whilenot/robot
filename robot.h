@@ -13,4 +13,6 @@
 #define LEFT      'B'
 #define BOTH      'C'
 
+extern int wheelSpeedRight;
+
 #endif

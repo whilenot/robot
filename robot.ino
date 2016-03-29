@@ -1,93 +1,38 @@
 /*
- * robot.ino
- */
+   robot.ino
+*/
 
+#include "encoders.h"
 #include "robot.h"
 #include "wheels.h"
 
-/* Initialization */
-void setup(){}
+int wheelSpeedLeft  = 100;
+int wheelSpeedRight = 114;
+
+/* Initialization of the robot */
+void setup()
+{
+  Serial.begin(9600);
+
+  /* Initialize the wheels */
+  wheels_init();
+
+  /* Set the speed of the motors */
+  wheels_setSpeed(LEFT,  wheelSpeedLeft);
+  wheels_setSpeed(RIGHT, wheelSpeedRight);
+  
+  /* Two second startup delay */
+  delay(2000);
+
+  /* Initialize the encoders */
+  encoders_init();
+  
+  /* Toggle brakes ON or OFF */
+  wheels_toggleBrake(BOTH, ON);
+}
 
 /* Main loop */
-void loop() 
+void loop()
 {
-  Wheels wheels;      // Define wheel object
   
-  delay(2000);        // Two second startup delay
-  
-  /* Set the wheels.setSpeed of the motors */
-  wheels.setSpeed(LEFT, 115);   // Set 45% duty cycle
-  wheels.setSpeed(RIGHT, 127);  // Set 50% duty cycle
-  
-  /* Drive forward for 5 seconds */
-  wheels.toggleBrake(BOTH, OFF);    // Disengage both Brakes
-  delay(5000);
-  
-  /* Stop */
-  wheels.toggleBrake(BOTH, ON);     // Engage both Brakes
-  delay(1000);
-
-  /* Make a right turn */
-  wheels.setDirection(RIGHT, BACKWARD);  // Drive right wheel backward
-  wheels.toggleBrake(BOTH, OFF);
-  delay(450);
-
-  /* Stop */
-  wheels.toggleBrake(BOTH, ON);
-  delay(1000);
-
-  /* Drive forward for 2 seconds */
-  wheels.setDirection(RIGHT, FORWARD);   // Drive right wheel forward
-  wheels.toggleBrake(BOTH, OFF);
-  delay(2000);
-
-  /* Stop */
-  wheels.toggleBrake(BOTH, ON);
-  delay(1000);
-
-  /* Make a right turn */
-  wheels.setDirection(RIGHT, BACKWARD);
-  wheels.toggleBrake(BOTH, OFF);  
-  delay(450);
-
-  /* Stop */
-  wheels.toggleBrake(BOTH, ON);
-  delay(1000);
-
-  /* Drive forward for 5 seconds */
-  wheels.setDirection(RIGHT, FORWARD);
-  wheels.toggleBrake(BOTH, OFF);
-  delay(5000);
-
-  /* Stop */
-  wheels.toggleBrake(BOTH, ON);
-  delay(1000);
-
-  /* Make a right turn */
-  wheels.setDirection(RIGHT, BACKWARD);
-  wheels.toggleBrake(BOTH, OFF);
-  delay(450);
-
-  /* Stop */
-  wheels.toggleBrake(BOTH, ON);
-  delay(1000);
-
-  /* Drive forward for 2 seconds */
-  wheels.setDirection(RIGHT, FORWARD);
-  wheels.toggleBrake(BOTH, OFF);
-  delay(2000);
-
-  /* Stop */
-  wheels.toggleBrake(BOTH, ON);
-  delay(1000);
-
-  /* Make a right turn */
-  wheels.setDirection(RIGHT, BACKWARD);
-  wheels.toggleBrake(BOTH, OFF);
-  delay(450);
-
-  /* Stop */
-  wheels.toggleBrake(BOTH, ON);
-    
-  while(1);
 }
