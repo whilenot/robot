@@ -81,4 +81,6 @@ int wheels_getCurrent(char ch)
     case LEFT :
       return analogRead(CurrentB);
   }
+
+  return 0;
 }

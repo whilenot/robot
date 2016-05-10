@@ -57,7 +57,7 @@ void encoders_init(void)
 }
 
 /* Interrupt service routine for wheel control */
-ISR(TIMER4_COMPA_vect)
+/*ISR(TIMER4_COMPA_vect)
 {
   Serial.print("L: ");
   Serial.print(counterLeft);
@@ -88,4 +88,4 @@ ISR(TIMER4_COMPA_vect)
   
   counterLeft  = 0;
   counterRight = 0;
-}
+}*/
