@@ -8,8 +8,8 @@
 #include <util/atomic.h>
 
 /// Arduino specific pins for ultra sonic sensors.
-#define BUCKET_SENSOR_TRIG_PIN   6
-#define BUCKET_SENSOR_ECHO_PIN   7
+#define BUCKET_SENSOR_TRIG_PIN  6
+#define BUCKET_SENSOR_ECHO_PIN  7
 #define TOP_SENSOR_TRIG_PIN     40
 #define TOP_SENSOR_ECHO_PIN     42
 

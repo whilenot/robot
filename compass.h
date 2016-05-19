@@ -14,6 +14,6 @@ void compass_init(void);
 void compass_update(void);
 void compass_write_to_ram(uint8_t);
 uint8_t compass_read_from_ram(void);
-bool compass_heading_triggered(void);
+bool compass_heading_ok(void);
 
 #endif

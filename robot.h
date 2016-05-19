@@ -23,6 +23,22 @@
 #define BACKWARD  0
 
 /************************************************************************/
+/* State definitions.                                                   */
+/************************************************************************/
+#define _DEFAULT           0
+#define BUCKET_IN          1
+#define LIFTING_ARM_UP     2
+#define LIFTING_ARM_DOWN   3
+#define BUCKET_OUT         4
+#define TURN_TO_MID_WALL   5
+#define TURN_FOR_WALL      6
+#define TURN_TO_LAUNCH     7
+#define CATAPULT_LOCK      8
+#define CATAPULT_ARM_UP    9
+#define CATAPULT_UNLOCK    10
+#define CATAPULT_ARM_DOWN  11
+
+/************************************************************************/
 /* Wheel definitions.                                                   */
 /************************************************************************/
 #define RIGHT     0

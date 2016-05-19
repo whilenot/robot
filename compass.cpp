@@ -9,12 +9,13 @@
 #include <util/atomic.h>
 #include <Wire.h>
 
+/// A heading between the start heading plus/minus this value is considered OK.
 #define COMPASS_TRIGGER_ANGLE  10
 
 /// 7-bit address, R/W bit controlled by Wire library.
 static const uint8_t compass_address = 0x42 >> 1;
 
-/// 8-bit address to the compass's RAM register
+/// 8-bit address to the compass's RAM register.
 static const uint8_t address_to_ram = 0x74;
 
 /// Variable holding the start heading of the compass.
@@ -58,8 +59,8 @@ void compass_init(void)
 /************************************************************************/
 void compass_update(void)
 {
-    /// This stuff needs to be used if compass is used in Standby Mode.
-    /******************************************************************
+    /// This stuff needs to be used if the compass is in Standby Mode.
+    /*****************************************************************
     /// Perform new heading calculation
     Wire.beginTransmission(compass_address);
     Wire.write('A');  // Get heading
@@ -67,7 +68,7 @@ void compass_update(void)
 
     /// Necessary delay according to datasheet
     delay(6);
-    ******************************************************************/
+    *****************************************************************/
     
     /// Request to read two byte of data
     Wire.requestFrom(compass_address, (uint8_t) 2);  // Casting due to compiler warning
@@ -133,15 +134,15 @@ uint8_t compass_read_from_ram(void)
     delay(1000);
   
     /// Request to read one byte of data
-    Wire.requestFrom(compass_address, (uint8_t) 1);
+    Wire.requestFrom(compass_address, (uint8_t) 1);  // Casting due to compiler warning
   
     return (uint8_t) Wire.read();
 }
 
 /************************************************************************/
-/* Returns true or false whether the bucket sensor is triggered or not. */
+/* Returns whether the heading is OK or not, when turning to mid wall.  */
 /************************************************************************/
-bool compass_heading_triggered(void)
+bool compass_heading_ok(void)
 {
     return ((compass_heading_atomic >= (compass_start_heading - COMPASS_TRIGGER_ANGLE)) && 
         (compass_heading_atomic <= (compass_start_heading + COMPASS_TRIGGER_ANGLE))) ? true : false;

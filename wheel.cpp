@@ -54,6 +54,7 @@ void wheel_toggle_brake(uint8_t wheel, uint8_t value)
             break;
         case BOTH :
             digitalWrite(BRAKE_A_PIN, value);
+            
         case LEFT :
             digitalWrite(BRAKE_B_PIN, value);
             break;
@@ -67,10 +68,11 @@ void wheel_set_direction(uint8_t wheel, uint8_t value)
 {
     switch(wheel) {
         case RIGHT :
-            digitalWrite(DIR_A_PIN, !value);
+            digitalWrite(DIR_A_PIN, value);
             break;
         case BOTH :
-            digitalWrite(DIR_A_PIN, !value);
+            digitalWrite(DIR_A_PIN, value);
+            
         case LEFT :
             digitalWrite(DIR_B_PIN, value);
             break;

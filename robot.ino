@@ -35,7 +35,7 @@ void setup()
     delay(2000);
   
     /// Toggle brakes ON or OFF.
-    wheel_toggle_brake(BOTH, OFF);
+    wheel_toggle_brake(BOTH, ON);
 
     /// Initialization of Timer4.
     timer4_init();

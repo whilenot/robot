@@ -26,9 +26,15 @@
 /// Delay until the lifting arm moves down (in 5 ms resolution, so 200 => 1 second delay).
 #define LIFTING_ARM_DELAY_TIME  200
 
+/// Time before a ball triggers the system (in 10 ms resolution, so 100 => 1 second delay).
+#define BUCKET_SENSOR_TRIG_TIME  100
+
+/// Delay for the robot to make a turn (in 10 ms resolution).
+#define MAKE_TURN_DELAY_TIME  100
+
 /// Top servo min- and max angle value.
-#define TOP_SENSOR_SERVO_MIN    15
-#define TOP_SENSOR_SERVO_MAX    135
+#define TOP_SENSOR_SERVO_MIN  15
+#define TOP_SENSOR_SERVO_MAX  135
 
 /// Initialization of servo objects.
 Servo lifting_arm_servo;
@@ -38,7 +44,7 @@ Servo catapult_locking_servo;
 Servo top_sensor_servo;
 
 /// Counter variable for the top servo angle.
-static volatile uint8_t top_servo_angle_counter = TOP_SENSOR_SERVO_MIN;
+static volatile uint8_t top_servo_angle_counter = 0;
 
 /// Variable holding the current state of the robot.
 static volatile int8_t state = -4;
@@ -52,8 +58,9 @@ static volatile bool prepared_to_launch = false;
 /************************************************************************/
 void lifting_arm_servo_rotate(uint8_t direction)
 {
-    static int servo_angle_counter = 41;
+    static int16_t servo_angle_counter = 41;
     
+    /// Direction check.
     switch(direction) {
         case DOWN :
             servo_angle_counter--;
@@ -63,6 +70,7 @@ void lifting_arm_servo_rotate(uint8_t direction)
             break;
     }
     
+    /// Servo working interval.
     if (servo_angle_counter < LIFTING_ARM_SERVO_MAX) {
         lifting_arm_servo.attach(LIFTING_ARM_SERVO_PIN);
         lifting_arm_servo.write(servo_angle_counter);
@@ -71,12 +79,11 @@ void lifting_arm_servo_rotate(uint8_t direction)
             lifting_arm_servo.detach();
             state++;
         }
-    } else {
-        if (servo_angle_counter == LIFTING_ARM_SERVO_MAX + LIFTING_ARM_DELAY_TIME) {
-            servo_angle_counter = LIFTING_ARM_SERVO_MAX;
-            lifting_arm_servo.detach();
-            state++;
-        }
+    /// Delaying the lifting arm to go down.
+    } else if (servo_angle_counter == (LIFTING_ARM_SERVO_MAX + LIFTING_ARM_DELAY_TIME)) {
+        servo_angle_counter = LIFTING_ARM_SERVO_MAX;
+        lifting_arm_servo.detach();
+        state++;
     }
 }
 
@@ -85,7 +92,7 @@ void lifting_arm_servo_rotate(uint8_t direction)
 /************************************************************************/
 void bucket_rotation_servo_rotate(uint8_t direction)
 {
-    static int servo_angle_counter = 42;
+    static uint8_t servo_angle_counter = 42;
     
     switch(direction) {
         case OUT :
@@ -134,7 +141,7 @@ void bucket_rotation_servo_rotate(uint8_t direction)
 /************************************************************************/
 void catapult_arm_servo_rotate(uint8_t direction)
 {
-    static int servo_angle_counter = 41;
+    static uint8_t servo_angle_counter = 41;
     
     switch(direction) {
         case DOWN :
@@ -171,7 +178,7 @@ void catapult_arm_servo_rotate(uint8_t direction)
 /************************************************************************/
 void catapult_locking_servo_rotate(uint8_t direction)
 {
-    static int servo_angle_counter = 48;
+    static uint8_t servo_angle_counter = 48;
     
     switch(direction) {
         case UNLOCK :
@@ -197,12 +204,14 @@ void catapult_locking_servo_rotate(uint8_t direction)
 /************************************************************************/
 void default_state(void) 
 {
-    static int bucket_sensor_trig_counter = 0;
-    static int delay_counter = 0;
+    static uint8_t bucket_sensor_trig_counter = 0;
+    static uint8_t delay_counter = 0;
     
     static bool triggered = false;
     
     if (!got_second_ball) {
+        /// Bucket trigger check to make sure there is ball to pick up.
+        /*************************************************************/
         if (bucket_sensor_trig_counter == 3) {
             bucket_sensor_trig_counter = 0;
             triggered = false;
@@ -210,7 +219,7 @@ void default_state(void)
         } else if (triggered) {
             delay_counter++;
         
-            if (delay_counter == 100) {
+            if (delay_counter == (BUCKET_SENSOR_TRIG_TIME / 2)) {
                 delay_counter = 0;
                 triggered = false;
             }
@@ -222,28 +231,37 @@ void default_state(void)
         }
     }    
     
+    /// Checking if the robot is too close to a wall.
+    /***********************************************/
     if (top_sensor_triggered()) {
+        /// The robot has no ball.
         if (!prepared_to_launch) {
+            /// If this counter is != 0 there might be a ball to pick up first.
             if (bucket_sensor_trig_counter == 0) {
-                //wheel_toggle_brake(BOTH, ON);
+                /// Low Speed Mode for turning.
                 wheel_set_speed(LOW);
                 
-                if (top_servo_angle_counter <= 60) {
-                    /// Turn left
+                /// Wall on the right.
+                if (top_servo_angle_counter <= ((TOP_SENSOR_SERVO_MAX - TOP_SENSOR_SERVO_MIN) / 2)) {
+                    /// Turn left.
                     wheel_set_direction(LEFT, BACKWARD);
+                /// Wall on the left.
                 } else {
-                    /// Turn right
+                    /// Turn right.
                     wheel_set_direction(RIGHT, BACKWARD);
                 }
                 
-                state = 5;  // Ska vara 6
+                /// Turn for wall state
+                state = 6;
             }
+        /// The robot has one or two balls.
         } else {
             prepared_to_launch = false;
             /// Turn left to prepare for launch (state 7)
             state = 8;
         }
     }
+    /********************************************************************/
 }
 
 /************************************************************************/
@@ -251,7 +269,7 @@ void default_state(void)
 /************************************************************************/
 void turn_to_mid_wall_state(void)
 {
-    if (compass_heading_triggered())
+    if (compass_heading_ok())
     {
         wheel_set_direction(BOTH, FORWARD);
         wheel_set_speed(HIGH);
@@ -263,16 +281,18 @@ void turn_to_mid_wall_state(void)
 /************************************************************************/
 /* Turn for wall state (state 6).                                       */
 /************************************************************************/
-void turn_for_wall_state(void) {
-    static int delay_counter = 0;
+void turn_for_wall_state(void)
+{
+    static int8_t delay_counter = 0;
     
     delay_counter++;
     
-    if (delay_counter == 100) {
+    if (delay_counter == MAKE_TURN_DELAY_TIME) {
         delay_counter = 0;
         
-        wheel_set_direction(LEFT, FORWARD);
-        wheel_set_direction(RIGHT, FORWARD);
+        wheel_set_direction(BOTH, FORWARD);
+        
+        wheel_set_speed(HIGH);
         
         state = 0;
     }    
