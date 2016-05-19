@@ -8,8 +8,8 @@
 #include <util/atomic.h>
 
 /// Arduino specific pins for ultra sonic sensors.
-#define BUCKET_SENSOR_TRIG_PIN   6
-#define BUCKET_SENSOR_ECHO_PIN   7
+#define BUCKET_SENSOR_TRIG_PIN  6
+#define BUCKET_SENSOR_ECHO_PIN  7
 #define TOP_SENSOR_TRIG_PIN     40
 #define TOP_SENSOR_ECHO_PIN     42
 
@@ -39,6 +39,8 @@ void bucket_sensor_update(void)
     ATOMIC_BLOCK(ATOMIC_FORCEON) {
         bucket_sensor_distance_atomic = distance;
     }
+    
+    Serial.println(bucket_sensor_distance_atomic);
 }
 
 /************************************************************************/
@@ -52,7 +54,6 @@ void top_sensor_update(void)
         top_sensor_distance_atomic = distance;
     }
     
-    Serial.print(bucket_sensor_distance_atomic);
     Serial.print("  ");
     Serial.println(top_sensor_distance_atomic);
 }
