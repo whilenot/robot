@@ -39,8 +39,6 @@ void bucket_sensor_update(void)
     ATOMIC_BLOCK(ATOMIC_FORCEON) {
         bucket_sensor_distance_atomic = distance;
     }
-    
-    Serial.println(bucket_sensor_distance_atomic);
 }
 
 /************************************************************************/
@@ -54,6 +52,7 @@ void top_sensor_update(void)
         top_sensor_distance_atomic = distance;
     }
     
+    Serial.print(bucket_sensor_distance_atomic);
     Serial.print("  ");
     Serial.println(top_sensor_distance_atomic);
 }
