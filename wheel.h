@@ -6,7 +6,7 @@
 #define WHEEL_H
 
 /************************************************************************/
-/* Declaration of functions used in wheel.cpp                           */
+/* Declaration of functions used in wheel.cpp (needed elsewhere).       */
 /************************************************************************/
 void wheel_init(void);
 void wheel_toggle_brake(uint8_t, uint8_t);

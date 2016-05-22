@@ -8,10 +8,10 @@
 #define COMPASS_H
 
 /************************************************************************/
-/* Declaration of functions used in compass.cpp                         */
+/* Declaration of functions used in compass.cpp (needed elsewhere).     */
 /************************************************************************/
 void compass_init(void);
-void compass_update(void);
+void compass_update(uint8_t);
 void compass_write_to_ram(uint8_t);
 uint8_t compass_read_from_ram(void);
 bool compass_heading_ok(void);

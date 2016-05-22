@@ -19,7 +19,7 @@
 
 /// Distances for the system to get triggered.
 #define BUCKET_SENSOR_TRIGGER_DISTANCE  15
-#define TOP_SENSOR_TRIGGER_DISTANCE     30
+#define TOP_SENSOR_TRIGGER_DISTANCE     20
 
 /// Initialization of sonar objects.
 NewPing bucket_sensor(BUCKET_SENSOR_TRIG_PIN, BUCKET_SENSOR_ECHO_PIN, BUCKET_SENSOR_MAX_DISTANCE);
@@ -34,8 +34,10 @@ static uint8_t top_sensor_distance_atomic    = UINT8_MAX;
 /************************************************************************/
 void bucket_sensor_update(void)
 {
+    /// Retrieving distance from sensor.
     uint8_t distance = (uint8_t) bucket_sensor.ping_cm();
     
+    /// Stores the distance in an atomic variable.
     ATOMIC_BLOCK(ATOMIC_FORCEON) {
         bucket_sensor_distance_atomic = distance;
     }
@@ -46,8 +48,10 @@ void bucket_sensor_update(void)
 /************************************************************************/
 void top_sensor_update(void)
 {
+    /// Retrieving distance from sensor.
     uint8_t distance = (uint8_t) top_sensor.ping_cm();
     
+    /// Stores the distance in an atomic variable.
     ATOMIC_BLOCK(ATOMIC_FORCEON) {
         top_sensor_distance_atomic = distance;
     }
@@ -58,7 +62,7 @@ void top_sensor_update(void)
 }
 
 /************************************************************************/
-/* Returns true or false whether the bucket sensor is triggered or not. */
+/* @returns true or false whether the bucket sensor is triggered or not.*/
 /************************************************************************/
 bool bucket_sensor_triggered(void)
 {
@@ -73,7 +77,7 @@ bool bucket_sensor_triggered(void)
 }
 
 /************************************************************************/
-/* Returns true or false whether the top sensor is triggered or not.    */
+/* @returns true or false whether the top sensor is triggered or not.   */
 /************************************************************************/
 bool top_sensor_triggered(void)
 {

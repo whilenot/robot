@@ -19,8 +19,8 @@
 #define WHEEL_SPEED_LEFT_HIGH   120
 
 /// Wheel speed in Low Speed Mode.
-#define WHEEL_SPEED_RIGHT_LOW   85
-#define WHEEL_SPEED_LEFT_LOW    85
+#define WHEEL_SPEED_RIGHT_LOW   100
+#define WHEEL_SPEED_LEFT_LOW    100
 
 /************************************************************************/
 /* Initialization of the wheel control.                                 */
@@ -30,7 +30,7 @@ void wheel_init(void)
     /* Channel A -- Right wheel */
     pinMode(DIR_A_PIN, OUTPUT);       // Direction pin as output
     pinMode(BRAKE_A_PIN, OUTPUT);     // Brake pin as output
-    digitalWrite(DIR_A_PIN, LOW);     // Set forward direction 
+    digitalWrite(DIR_A_PIN, HIGH);     // Set forward direction 
     digitalWrite(BRAKE_A_PIN, HIGH);  // Engage brake
     analogWrite(SPEED_A_PIN, WHEEL_SPEED_RIGHT_HIGH); // Set wheel speed
     
@@ -44,48 +44,48 @@ void wheel_init(void)
 }
 
 /************************************************************************/
-/* Toggle the brake pin for one motor, or both.                         */
+/* Set the brake status (@param val) of one or both wheels (@param wh). */
 /************************************************************************/
-void wheel_toggle_brake(uint8_t wheel, uint8_t value)
+void wheel_toggle_brake(uint8_t wh, uint8_t val)
 {
-    switch(wheel) {
+    switch(wh) {
         case RIGHT :
-            digitalWrite(BRAKE_A_PIN, value);
+            digitalWrite(BRAKE_A_PIN, val);
             break;
         case BOTH :
-            digitalWrite(BRAKE_A_PIN, value);
+            digitalWrite(BRAKE_A_PIN, val);
             
         case LEFT :
-            digitalWrite(BRAKE_B_PIN, value);
+            digitalWrite(BRAKE_B_PIN, val);
             break;
     }
 }
 
 /************************************************************************/
-/* Set the direction of one motor, or both.                             */
+/* Set the direction (@param val) of one or both wheels (@param wh).    */
 /************************************************************************/
-void wheel_set_direction(uint8_t wheel, uint8_t value)
+void wheel_set_direction(uint8_t wh, uint8_t val)
 {
-    switch(wheel) {
+    switch(wh) {
         case RIGHT :
-            digitalWrite(DIR_A_PIN, value);
+            digitalWrite(DIR_A_PIN, val);
             break;
         case BOTH :
-            digitalWrite(DIR_A_PIN, value);
+            digitalWrite(DIR_A_PIN, val);
             
         case LEFT :
-            digitalWrite(DIR_B_PIN, value);
+            digitalWrite(DIR_B_PIN, val);
             break;
     }
 }
 
 /************************************************************************/
-/* Set the motors in High- or Low Speed Mode.                           */
+/* Set the motors in High- or Low Speed Mode (@param mode).             */
 /************************************************************************/
-void wheel_set_speed(uint8_t value)
+void wheel_set_speed(uint8_t mode)
 {
     /// High Speed Mode
-    if (value) {
+    if (mode) {
         analogWrite(SPEED_A_PIN, WHEEL_SPEED_RIGHT_HIGH);
         analogWrite(SPEED_B_PIN, WHEEL_SPEED_LEFT_HIGH);
     /// Low Speed Mode
