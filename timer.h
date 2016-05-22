@@ -6,7 +6,7 @@
 #define TIMER_H
 
 /************************************************************************/
-/* Declaration of functions used in timer.cpp                           */
+/* Declaration of functions used in timer.cpp (needed elsewhere).       */
 /************************************************************************/
 void timer4_init(void);
 extern void timer4_isr(void);

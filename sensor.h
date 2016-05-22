@@ -6,7 +6,7 @@
 #define SENSOR_H
 
 /************************************************************************/
-/* Declaration of functions used in sensor.cpp                          */
+/* Declaration of functions used in sensor.cpp (needed elsewhere).      */
 /************************************************************************/
 void bucket_sensor_update(void);
 void top_sensor_update(void);

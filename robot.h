@@ -6,43 +6,54 @@
 #define ROBOT_H
 
 /************************************************************************/
-/* Logic definitions.                                                   */
+/* Compass definitions.                                                 */
 /************************************************************************/
-/// TRUE
-#define ON        1
-#define UP        1
-#define IN        1
-#define LOCK      1
-#define FORWARD   1
+#define NEW_HEADING  1
+#define GET_HEADING  0
 
-/// FALSE
-#define OFF       0
-#define DOWN      0
-#define OUT       0
-#define UNLOCK    0
-#define BACKWARD  0
+/************************************************************************/
+/* Servo definitions.                                                   */
+/************************************************************************/
+#define LIFTING_ARM       0
+#define BUCKET_ROTATION   1
+#define CATAPULT_ARM      2
+#define CATAPULT_LOCKING  3
+#define TOP_SENSOR        4
 
 /************************************************************************/
 /* State definitions.                                                   */
 /************************************************************************/
-#define _DEFAULT           0
-#define BUCKET_IN          1
-#define LIFTING_ARM_UP     2
-#define LIFTING_ARM_DOWN   3
-#define BUCKET_OUT         4
-#define TURN_TO_MID_WALL   5
-#define TURN_FOR_WALL      6
-#define TURN_TO_LAUNCH     7
-#define CATAPULT_LOCK      8
-#define CATAPULT_ARM_UP    9
-#define CATAPULT_UNLOCK    10
-#define CATAPULT_ARM_DOWN  11
+/// Startup states.
+#define LIFTING_ARM_HOME       -4
+#define BUCKET_HOME            -3
+#define CATAPULT_ARM_HOME      -2
+#define CATAPULT_LOCKING_HOME  -1
+
+/// Regular states.
+#define _DEFAULT                0
+#define BUCKET_IN               1
+#define LIFTING_ARM_UP          2
+#define LIFTING_ARM_DOWN        3
+#define BUCKET_OUT              4
+#define TURN_TO_MID_WALL        5
+#define TURN_FOR_WALL           6
+#define TURN_TO_LAUNCH          7
+#define CATAPULT_LOCK           8
+#define CATAPULT_ARM_UP         9
+#define CATAPULT_UNLOCK         10
+#define CATAPULT_ARM_DOWN       11
 
 /************************************************************************/
 /* Wheel definitions.                                                   */
 /************************************************************************/
-#define RIGHT     0
-#define LEFT      1
-#define BOTH      2
+#define ON   1
+#define OFF  0
+
+#define FORWARD   1
+#define BACKWARD  0
+
+#define RIGHT  0
+#define LEFT   1
+#define BOTH   2
 
 #endif
