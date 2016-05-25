@@ -15,9 +15,9 @@
 #define TOP_SENSOR_SERVO_PIN        10
 
 /// Servo min- and max angle values. Be careful here!
-/// These values depend on the increment- and decrement amount.
+/// These values depend on the increment- and decrement amount specified in state.cpp
 #define LIFTING_ARM_SERVO_MIN       0
-#define LIFTING_ARM_SERVO_MAX       56
+#define LIFTING_ARM_SERVO_MAX       62
 
 #define BUCKET_ROTATION_SERVO_MIN   0
 #define BUCKET_ROTATION_SERVO_MAX   200
@@ -64,12 +64,12 @@ static const uint8_t servo_max_angle[5] = {
 
 /// Initialization of array holding the current angle of the servos.
 /// Assumes startup states to be implemented. That's why not all values are == 0.
-static uint8_t servo_angle[5] = {
+static int16_t servo_angle[5] = {
     41,  // Lifting arm servo
     42,  // Bucket rotation servo
     41,  // Catapult arm servo
     42,  // Catapult locking servo
-    0    // Top sensor servo
+    -15  // Top sensor servo
 };
 
 /************************************************************************/
@@ -93,8 +93,10 @@ void servo_detach(uint8_t _servo)
 /************************************************************************/
 void servo_angle_decrement(uint8_t _servo, uint8_t amount)
 {
+    /// Decrements angle.
     servo_angle[_servo] -= amount;
     
+    /// Rotates the servo to desired angle.
     servo[_servo].write(servo_angle[_servo]);
 }
 
@@ -103,8 +105,10 @@ void servo_angle_decrement(uint8_t _servo, uint8_t amount)
 /************************************************************************/
 void servo_angle_increment(uint8_t _servo, uint8_t amount)
 {
+    /// Increments angle.
     servo_angle[_servo] += amount;
     
+    /// Rotates the servo to desired angle.
     servo[_servo].write(servo_angle[_servo]);    
 }
 
@@ -131,19 +135,40 @@ void top_sensor_servo_rotate(void)
 {
     static bool rotate_left = true;
     
+    /// The top sensor servo rotates left.
     if (rotate_left) {
-        servo_angle_increment(TOP_SENSOR, 15);
+        /// Increments angle.
+        servo_angle_increment(TOP_SENSOR, 30);
         
         if (servo_at_max_angle(TOP_SENSOR)) {
             rotate_left = false;
         }
+        
+    /// The top sensor servo rotates right.
     } else {
-        servo_angle_decrement(TOP_SENSOR, 15);
+        /// Decrements angle.
+        servo_angle_decrement(TOP_SENSOR, 30);
         
         if (servo_at_min_angle(TOP_SENSOR)) {
             rotate_left = true;
         }
     }
+}
+
+/************************************************************************/
+/* Rotates the top sensor servo to mid position.                        */
+/************************************************************************/
+void top_sensor_servo_mid(void)
+{
+    servo[TOP_SENSOR].write(TOP_SENSOR_SERVO_MIN + ((TOP_SENSOR_SERVO_MAX - TOP_SENSOR_SERVO_MIN) / 2));
+}
+
+/************************************************************************/
+/* @returns the value of the top servo angle.                           */
+/************************************************************************/
+bool top_servo_at_mid(void)
+{
+    return (servo_angle[TOP_SENSOR] == (TOP_SENSOR_SERVO_MIN + ((TOP_SENSOR_SERVO_MAX - TOP_SENSOR_SERVO_MIN) / 2))) ? true : false;
 }
 
 /************************************************************************/

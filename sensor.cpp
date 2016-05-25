@@ -18,8 +18,15 @@
 #define TOP_SENSOR_MAX_DISTANCE     50
 
 /// Distances for the system to get triggered.
-#define BUCKET_SENSOR_TRIGGER_DISTANCE  15
-#define TOP_SENSOR_TRIGGER_DISTANCE     20
+#define BUCKET_SENSOR_TRIGGER_DISTANCE    15
+#define TOP_SENSOR_TRIGGER_DISTANCE_MID   16
+#define TOP_SENSOR_TRIGGER_DISTANCE_SIDE  18
+
+/// Initialization of array holding the top sensor trigger distances.
+static const uint8_t top_sensor_trigger_distance[2] = {
+    TOP_SENSOR_TRIGGER_DISTANCE_MID,
+    TOP_SENSOR_TRIGGER_DISTANCE_SIDE
+};
 
 /// Initialization of sonar objects.
 NewPing bucket_sensor(BUCKET_SENSOR_TRIG_PIN, BUCKET_SENSOR_ECHO_PIN, BUCKET_SENSOR_MAX_DISTANCE);
@@ -49,7 +56,8 @@ void bucket_sensor_update(void)
 void top_sensor_update(void)
 {
     /// Retrieving distance from sensor.
-    uint8_t distance = (uint8_t) top_sensor.ping_cm();
+    long time = top_sensor.ping_median(3);
+    uint8_t distance = (uint8_t) top_sensor.convert_cm(time);
     
     /// Stores the distance in an atomic variable.
     ATOMIC_BLOCK(ATOMIC_FORCEON) {
@@ -79,11 +87,11 @@ bool bucket_sensor_triggered(void)
 /************************************************************************/
 /* @returns true or false whether the top sensor is triggered or not.   */
 /************************************************************************/
-bool top_sensor_triggered(void)
+bool top_sensor_triggered(uint8_t val)
 {
     bool triggered = false;
     
-    if ((top_sensor_distance_atomic > 0) && (top_sensor_distance_atomic <= TOP_SENSOR_TRIGGER_DISTANCE)) {
+    if ((top_sensor_distance_atomic >= 10) && (top_sensor_distance_atomic <= top_sensor_trigger_distance[val])) {
         top_sensor_distance_atomic = UINT8_MAX;
         triggered = true;
     }

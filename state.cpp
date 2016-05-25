@@ -11,12 +11,15 @@
 #include "wheel.h"
 
 /// Time before a ball triggers the system (in 10 ms resolution, so 100 => 1 second delay).
-#define BUCKET_SENSOR_TRIG_TIME  90
+#define BUCKET_SENSOR_TRIG_TIME  30
 
 /// Delay until the lifting arm moves down (10 ms resolution).
 #define LIFTING_ARM_DELAY_TIME  100
 
-/// Delay for the robot to make a turn (10 ms resolution).
+/// Delay time for the robot to go back before it makes a turn (10 ms resolution).
+#define GO_BACK_DELAY_TIME  75
+
+/// Delay time for the robot to make a turn (10 ms resolution).
 #define MAKE_TURN_DELAY_TIME  125
 
 /// Time before a compass heading search is considered timed out (10 ms resolution).
@@ -24,7 +27,10 @@
 
 /// Time to delay next compass heading search (10 ms resolution).
 /// This delay might be delayed itself if the robot picks up a ball or has to turn for wall.
-#define TURN_TO_MID_WALL_DELAY  500
+#define TURN_TO_MID_WALL_DELAY  600
+
+/// Maximum value of bucket trigger signals before the robot desides to turn for wall.
+#define BACK_AWAY_TRIG_COUNT  3
 
 /// Variable holding the current state of the robot.
 static volatile int8_t state = INT8_MAX;
@@ -32,6 +38,9 @@ static volatile int8_t state = INT8_MAX;
 /// Variables holding information of the number of balls (if any) that can be launched.
 static volatile bool got_second_ball    = false;
 static volatile bool prepared_to_launch = false;
+
+/// Variable saying what way to turn.
+static volatile bool turn_left = false;
 
 /// Variable saying if the robot is trying to find the mid wall.
 static volatile bool searching_for_mid_wall = false;
@@ -60,13 +69,21 @@ void default_state(void)
     /// Logic variable for trigger check.
     static bool triggered = false;
     
-    /// Logic variables to ensure the most important state is up next.
+    /// Logic variables to ensure that the most important state is up next.
     bool pick_up_ball  = false;
     bool turn_for_wall = false;
     
     /// Counter variable for search for mid wall delay.
     static uint16_t mid_wall_counter = 0;
     
+    /// Variable for counting bucket trigger signals when close to a wall.
+    /// This variable helps delay the time to turn for wall in case of ball in sight.
+    static uint8_t back_away_counter = 0;
+    
+    /// Variable holding the direction of the top sensor servo.
+    uint8_t val = MID;
+    
+    /// The robot has less than two balls.
     if (!got_second_ball) {
         /// Bucket trigger check to make sure there is ball to pick up.
         /**************************************************************/
@@ -96,6 +113,7 @@ void default_state(void)
         if (bucket_sensor_trig_counter == 3) {
             bucket_sensor_trig_counter = 0;
             
+            /// Setting logic variables.
             triggered = false;
             pick_up_ball = true;
             
@@ -106,9 +124,14 @@ void default_state(void)
         }
     }
     
+    /// Checking the direction of the top sensor servo.
+    if (!top_servo_at_mid()) {
+        val = SIDE;
+    }
+    
     /// Checking if the robot is too close to a wall.
     /************************************************/
-    if (top_sensor_triggered() && !pick_up_ball) {
+    if (top_sensor_triggered(val) && !pick_up_ball) {
         /// The robot has one or two balls.
         if (prepared_to_launch && !searching_for_mid_wall) {
             prepared_to_launch = false;
@@ -116,15 +139,19 @@ void default_state(void)
             /// Low Speed Mode for turning.
             wheel_set_speed(LOW);
             
-            /// Turn left.
-            wheel_set_direction(LEFT, BACKWARD);
+            /// Prepare to move backwards.
+            wheel_set_direction(BOTH, BACKWARD);
             
             next_state(TURN_TO_LAUNCH);
             
         /// The robot has no ball.
         } else {
             /// No ball in front of the robot.
-            if (bucket_sensor_trig_counter == 0) {
+            if ((bucket_sensor_trig_counter == 0) || (back_away_counter == BACK_AWAY_TRIG_COUNT)) {
+                /// Resets the counter for trigger signals close to a wall.
+                back_away_counter = 0;
+                
+                /// Sets logic variable to prevent another change of state.
                 turn_for_wall = true;
                 
                 /// Low Speed Mode for turning.
@@ -133,13 +160,11 @@ void default_state(void)
                 /// Wall on the right.
                 if (top_servo_right_angle()) {
                     /// Turn left.
-                    wheel_set_direction(LEFT, BACKWARD);
-                    
-                /// Wall on the left.
-                } else {
-                    /// Turn right.
-                    wheel_set_direction(RIGHT, BACKWARD);
+                    turn_left = true;
                 }
+                
+                /// Prepare to move backwards.
+                wheel_set_direction(BOTH, BACKWARD);
                 
                 /// Let go of the robot.
                 wheel_toggle_brake(BOTH, OFF);
@@ -148,6 +173,9 @@ void default_state(void)
                 
             /// There might be a ball to pick up.
             } else {
+                /// Increments the counter for trigger signals close to a wall.
+                back_away_counter++;
+                
                 /// Stop the robot.
                 wheel_toggle_brake(BOTH, ON);
                 
@@ -239,8 +267,8 @@ void bucket_out(void)
                 /// Low Speed Mode for turning.
                 wheel_set_speed(LOW);
                 
-                /// Turn left.
-                wheel_set_direction(LEFT, BACKWARD);
+                /// Prepare the robot to move backwards.
+                wheel_set_direction(BOTH, BACKWARD);
                 
                 /// Let go of the robot.
                 wheel_toggle_brake(BOTH, OFF);
@@ -309,33 +337,58 @@ void lifting_arm_down(void)
 /************************************************************************/
 void turn_to_mid_wall(void)
 {
+    /// Delay counter for moving backwards.
+    static uint16_t go_back_counter = 0;
+    
+    /// Variable saying if the robot should move backwards or not.
+    static bool go_back = true;
+    
     /// Time out counter.
     static uint16_t time_out = 0;
     
+    /// Variable saying if the robot should move on to next state or not.
     bool move_on = false;
     
-    time_out++;
+    /// Move backwards.
+    if (go_back) {
+        go_back_counter++;
+        
+        if (go_back_counter == GO_BACK_DELAY_TIME) {
+            go_back_counter = 0;
+            go_back = false;
+            
+            /// Turn left.
+            wheel_set_direction(RIGHT, FORWARD);
+        }
+        
+    /// Turn around.
+    } else {
+        time_out++;
     
-    /// Compass heading is OK.
-    if (compass_heading_ok()) {
-        move_on = true;        
-    /// Searching for compass heading timed out.
-    } else if (time_out == COMPASS_TIME_OUT) {
-        searching_for_mid_wall = true;
-        move_on = true;
-    }
-    
-    if (move_on) {
-        time_out = 0;
+        /// Compass heading is OK.
+        if (compass_heading_ok()) {
+            move_on = true;        
         
-        /// Stop turning.
-        wheel_set_direction(BOTH, FORWARD);
+        /// Searching for compass heading timed out.
+        } else if (time_out == COMPASS_TIME_OUT) {
+            searching_for_mid_wall = true;
+            move_on = true;
+        }
         
-        /// High Speed Mode.
-        wheel_set_speed(HIGH);
+        /// Move on to next state.
+        if (move_on) {
+            time_out = 0;
+            go_back = true;
         
-        next_state(_DEFAULT);
-    }
+            /// Stop turning.
+            wheel_set_direction(BOTH, FORWARD);
+        
+            /// High Speed Mode.
+            wheel_set_speed(HIGH);
+        
+            next_state(_DEFAULT);
+        }
+    }    
 }
 
 /************************************************************************/
@@ -343,23 +396,52 @@ void turn_to_mid_wall(void)
 /************************************************************************/
 void turn_for_wall(void)
 {
-    /// Delay counter variable.
+    /// Delay counter variables.
     static uint8_t delay_counter = 0;
+    static uint16_t go_back_counter = 0;
     
-    delay_counter++;
+    /// Variable saying if the robot should move backwards or not.
+    static bool go_back = true;    
     
-    /// Turn is done.
-    if (delay_counter == MAKE_TURN_DELAY_TIME) {
-        delay_counter = 0;
+    /// Move backwards.
+    if (go_back) {
+        go_back_counter++;
         
-        /// Stop turning.
-        wheel_set_direction(BOTH, FORWARD); 
+        if (go_back_counter == GO_BACK_DELAY_TIME) {
+            go_back_counter = 0;
+            go_back = false;
+            
+            /// Turn left.
+            if (turn_left) {
+                turn_left = false;
+                
+                wheel_set_direction(RIGHT, FORWARD);
+                
+            /// Turn right.
+            } else {
+                wheel_set_direction(LEFT, FORWARD);
+                
+            }
+        }
+        
+    /// Turn around.
+    } else {
+        delay_counter++;
+        
+        /// Turn is done.
+        if (delay_counter == MAKE_TURN_DELAY_TIME) {
+            delay_counter = 0;
+            go_back = true;
+        
+            /// Stop turning.
+            wheel_set_direction(BOTH, FORWARD); 
 
-        /// High Speed Mode.
-        wheel_set_speed(HIGH);
+            /// High Speed Mode.
+            wheel_set_speed(HIGH);
         
-        next_state(_DEFAULT);
-    }
+            next_state(_DEFAULT);
+        }
+    }    
 }
 
 /************************************************************************/
@@ -367,26 +449,46 @@ void turn_for_wall(void)
 /************************************************************************/
 void turn_to_launch(void)
 {
-    /// Delay counter variable.
+    /// Delay counter variables.
     static uint8_t delay_counter = 0;
+    static uint16_t go_back_counter = 0;
     
-    delay_counter++;
+    /// Variable saying if the robot should move backwards or not.
+    static bool go_back = true;
     
-    /// Turn is done.
-    if (delay_counter == MAKE_TURN_DELAY_TIME) {
-        delay_counter = 0;
+    /// Move backwards.
+    if (go_back) {
+        go_back_counter++;
         
-        /// Stop turning.
-        wheel_set_direction(BOTH, FORWARD); 
+        if (go_back_counter == GO_BACK_DELAY_TIME) {
+            go_back_counter = 0;
+            go_back = false;
+            
+            /// Turn left.
+            wheel_set_direction(RIGHT, FORWARD);
+        }
+    
+    /// Turn around.
+    } else {
+        delay_counter++;
+    
+        /// Turn is done.
+        if (delay_counter == MAKE_TURN_DELAY_TIME) {
+            delay_counter = 0;
+            go_back = true;
+        
+            /// Stop turning.
+            wheel_set_direction(BOTH, FORWARD); 
 
-        /// High Speed Mode.
-        wheel_set_speed(HIGH);
+            /// High Speed Mode.
+            wheel_set_speed(HIGH);
         
-        /// Stop the robot.
-        wheel_toggle_brake(BOTH, ON);
+            /// Stop the robot.
+            wheel_toggle_brake(BOTH, ON);
         
-        next_state(CATAPULT_LOCK);
-    }
+            next_state(CATAPULT_LOCK);
+        }    
+    }    
 }
 
 /************************************************************************/
@@ -470,6 +572,20 @@ void catapult_arm_down(void)
 }
 
 /************************************************************************/
+/* @returns if the robot is going for mid wall or not.                  */
+/************************************************************************/
+bool going_for_mid_wall(void)
+{
+    bool mid_wall = false;
+    
+    if (prepared_to_launch && !searching_for_mid_wall) {
+        mid_wall = true;
+    }
+    
+    return mid_wall;
+}
+
+/************************************************************************/
 /* Help function to attach/detach servos and setting the next state.    */
 /************************************************************************/
 void next_state(int8_t next_state)
@@ -494,8 +610,8 @@ void next_state(int8_t next_state)
         /// Regular states.
         /*******************/
         case _DEFAULT :               // (0)
-            servo_detach(LIFTING_ARM);
             servo_detach(TOP_SENSOR);
+            servo_detach(LIFTING_ARM);
             break;
         case BUCKET_IN :              // (1)
             servo_detach(BUCKET_ROTATION);
@@ -508,6 +624,7 @@ void next_state(int8_t next_state)
             break;
         case BUCKET_OUT :             // (4)
             servo_detach(BUCKET_ROTATION);
+            servo_detach(LIFTING_ARM);
             break;
         case CATAPULT_LOCK :          // (8)
             servo_detach(CATAPULT_LOCKING);
@@ -543,11 +660,12 @@ void next_state(int8_t next_state)
         /// Regular states.
         /*******************/
         case _DEFAULT :               // (0)
-            servo_attach(LIFTING_ARM);
             servo_attach(TOP_SENSOR);
+            servo_attach(LIFTING_ARM);
             break;
         case BUCKET_IN :              // (1)
             servo_attach(BUCKET_ROTATION);
+            servo_attach(LIFTING_ARM);
             break;
         case LIFTING_ARM_UP :         // (2)
             servo_attach(LIFTING_ARM);
