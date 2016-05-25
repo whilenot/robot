@@ -15,6 +15,8 @@ void servo_angle_increment(uint8_t, uint8_t);
 bool servo_at_min_angle(uint8_t);
 bool servo_at_max_angle(uint8_t);
 void top_sensor_servo_rotate(void);
+void top_sensor_servo_mid(void);
+bool top_servo_at_mid(void);
 bool top_servo_right_angle(void);
 
 #endif

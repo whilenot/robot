@@ -62,11 +62,11 @@ void compass_init(void)
 }
 
 /************************************************************************/
-/* Updates the current heading of the compass. Assumes Standby Mode.    */
+/* Calculates or retrieves new heading (@param task).                   */
 /************************************************************************/
 void compass_update(uint8_t task)
 {
-    /// Perform new heading calculation.
+    /// Assumes Standby Mode. Performs new heading calculation.
     if (task) {
         Wire.beginTransmission(compass_address);
         Wire.write('A');  // Get heading

@@ -11,6 +11,6 @@
 void bucket_sensor_update(void);
 void top_sensor_update(void);
 bool bucket_sensor_triggered(void);
-bool top_sensor_triggered(void);
+bool top_sensor_triggered(uint8_t);
 
 #endif

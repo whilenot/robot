@@ -22,6 +22,7 @@ void catapult_arm_up(void);
 void catapult_arm_down(void);
 void catapult_lock(void);
 void catapult_unlock(void);
+bool going_for_mid_wall(void);
 int8_t current_state(void);
 
 #endif
